@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-app2
+  namespace: default
+  labels:
+    app: test-app2
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: test-app2
+  template:
+    metadata:
+      labels:
+        app: test-app2
+    spec:
+      containers:
+      - name: test-app2
+        image: asia-south1-docker.pkg.dev/dev-zephyr-352206/test-app2/test-app2:latest
+        ports:
+        - containerPort: 3000
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: PORT
+          value: "3000"
+        - name: OPENWEATHER_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: openweather-api-key
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+          limits:
+            memory: "128Mi"
+            cpu: "100m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: test-app2-service
+  namespace: default
+spec:
+  selector:
+    app: test-app2
+  ports:
+  - port: 80
+    targetPort: 3000
+  type: LoadBalancer
